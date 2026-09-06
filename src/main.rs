@@ -1,6 +1,7 @@
 use clap::Parser;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::FromRow;
+use std::env;
 
 #[derive(Parser)]
 struct Args {
@@ -18,9 +19,12 @@ struct Item {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
+    let database_url = env::var("DATABASE_URL")
+        .map_err(|_| "DATABASE_URL must be set (e.g. postgres://user@localhost/dbname)")?;
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect("postgres://bradenpowers@localhost/postgres")
+        .connect(&database_url)
         .await?;
 
     let pattern = format!("%{}%", args.filter);
